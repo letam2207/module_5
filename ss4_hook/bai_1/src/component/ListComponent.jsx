@@ -1,128 +1,102 @@
-import {useEffect, useRef, useState} from "react";
-import {addNew, getAll, searchById} from "../service/PlayerService.jsx";
-import DeleteComponent from "./DeleteComponent.jsx";
 
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { getAll, searchByNameOrCode } from "../service/PlayerService.jsx";
+import DeleteComponent from "./DeleteComponent.jsx";
+import { toast } from "react-toastify";
 
 const ListComponent = () => {
-
-    const [playerList, setPlayerList] = useState(null);
-    const [deletePlayer, setDeletePlayer] = useState({id: 0, name: ""});
+    const [playerList, setPlayerList] = useState([]);
+    const [deletePlayer, setDeletePlayer] = useState({ id: 0, name: "" });
     const [showModal, setShowModal] = useState(false);
-    const [reloading, setReloading] = useState(false);
-    const searchRef = useRef(null);
-    const handleSearch = () => {
-        const keyword = searchRef.current.value;
-        const result = searchById(keyword);
-        setPlayerList(result);
-    }
-
-
-    const idRef = useRef(null);
-    const codeRef = useRef(null);
-    const nameRef = useRef(null);
-    const dobRef = useRef(null);
-    const transferValueRef = useRef(null);
-    const positionRef = useRef(null);
+    const searchRef = useRef();
 
     useEffect(() => {
-        setPlayerList(getAll())
-    }, [reloading]);
+        setPlayerList(getAll());
+    }, []);
+
+    const handleSearch = () => {
+        const keyword = searchRef.current.value;
+        const result = searchByNameOrCode(keyword);
+        setPlayerList(result);
+    };
 
     const handleShowModal = (player) => {
         setDeletePlayer(player);
         setShowModal(true);
-    }
+    };
 
-    const closeModal = () => {
-        setReloading(pre => !pre);
+    const closeModal = (isDeleted = false) => {
         setShowModal(false);
-    }
-
-
-
-    const handleAdd = () => {
-        const id = idRef.current.value;
-        const code = codeRef.current.value;
-        const name = nameRef.current.value;
-        const dob = dobRef.current.value;
-        const transferValue = transferValueRef.current.value;
-        const position = positionRef.current.value;
-        const newPlayer = {
-            id: id,
-            code :code,
-            name: name,
-            dob : dob,
-            transferValue : transferValue,
-            position : position
+        if (isDeleted) {
+            setPlayerList(getAll());
+            toast.success("Xóa thành công!");
         }
-        addNew(newPlayer);
-        console.log(getAll());
-        setReloading(pre => !pre);
-    }
-
+    };
 
     return (
-        <>
-            <form>
-                ID: <input ref={idRef} name={"id"}/><br/>
-                Mã Cầu Thủ: <input ref={codeRef} name={"code"}/><br/>
-                Tên Cầu Thủ: <input ref={nameRef} name={"name"}/><br/>
-                Ngày Sinh: <input ref={dobRef} name={"dob"}/><br/>
-                Giá Trị Chuyển Nhược: <input ref={transferValueRef} name={"transferValue"}/><br/>
-                Vị Trí: <input ref={positionRef} name={"position"}/><br/>
-                <button onClick={handleAdd} type={'button'}>Thêm mới</button>
-            </form>
+        <div className="container mt-4">
+            <h1 className="text-center text-primary">Danh sách cầu thủ</h1>
 
-                <label>Tìm kiếm theo ID: </label>
-                <input ref={searchRef} placeholder="Nhập ID..." />
-                <button onClick={handleSearch} >Tìm kiếm</button>
+            <div className="d-flex justify-content-between mb-3">
+                <Link to="/players/create" className="btn btn-success">
+                    + Thêm cầu thủ mới
+                </Link>
+                <div className="d-flex">
+                    <input ref={searchRef} className="form-control me-2" placeholder="Tìm tên hoặc mã..." />
+                    <button onClick={handleSearch} className="btn btn-outline-primary">Tìm kiếm</button>
+                </div>
+            </div>
 
-            <h1 style={{color: "yellow"}}>Danh sách cầu thủ</h1>
-            <table className="table table-dark">
-                <thead>
+            <table className="table table-striped table-hover table-bordered">
+                <thead className="table-dark">
                 <tr>
-                    <td>STT</td>
-                    <td>ID</td>
-                    <td>Mã Cầu Thủ</td>
-                    <td>Tên Cầu Thủ</td>
-                    <td>Ngày Sinh</td>
-                    <td>Giá Trị Chuyển Nhượng</td>
-                    <td>Vị Trí</td>
-                    <td>Delete</td>
+                    <th>STT</th>
+                    <th>Mã</th>
+                    <th>Tên Cầu Thủ</th>
+                    <th>Ngày Sinh</th>
+                    <th>Giá Trị</th>
+                    <th>Vị Trí</th>
+                    <th>Hành động</th>
                 </tr>
                 </thead>
                 <tbody>
-                {
-                    playerList && playerList.map((player, i) => (
+                {playerList.length > 0 ? (
+                    playerList.map((player, i) => (
                         <tr key={player.id}>
                             <td>{i + 1}</td>
-                            <td>{player.id}</td>
                             <td>{player.code}</td>
                             <td>{player.name}</td>
                             <td>{player.dob}</td>
                             <td>{player.transferValue}</td>
                             <td>{player.position}</td>
                             <td>
-                                <button onClick={() => {
-                                    handleShowModal(player)
-                                }} className={'btn btn-sm btn-danger'}>
+                                <Link to={`/players/edit/${player.id}`} className="btn btn-sm btn-warning me-2">
+                                    Edit
+                                </Link>
+                                <button
+                                    onClick={() => handleShowModal(player)}
+                                    className='btn btn-sm btn-danger'
+                                >
                                     Delete
                                 </button>
                             </td>
                         </tr>
                     ))
-                }
+                ) : (
+                    <tr><td colSpan="7" className="text-center">Không tìm thấy dữ liệu</td></tr>
+                )}
                 </tbody>
             </table>
-            {showModal &&
-                <DeleteComponent deletePlayer={deletePlayer}
-                                 showModal={showModal}
-                                 closeModal={closeModal}
+
+            {showModal && (
+                <DeleteComponent
+                    deletePlayer={deletePlayer}
+                    showModal={showModal}
+                    closeModal={closeModal}
                 />
-            }
-
-        </>
+            )}
+        </div>
     );
-
-}
+};
 export default ListComponent;
