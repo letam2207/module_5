@@ -1,46 +1,66 @@
-// service/PlayerService.jsx
-const playerList = [
-    { id: 1, code: "001", name: "Nguyễn Tiến Linh", dob: "1997-10-20", transferValue: 350000, position: "Tiền đạo" },
-    { id: 2, code: "002", name: "Nguyễn Quang Hải", dob: "1997-04-12", transferValue: 400000, position: "Tiền vệ" },
-    { id: 3, code: "003", name: "Quế Ngọc Hải", dob: "1993-05-15", transferValue: 300000, position: "Hậu vệ" },
-    { id: 4, code: "004", name: "Đặng Văn Lâm", dob: "1993-08-13", transferValue: 250000, position: "Thủ môn" },
-    { id: 5, code: "005", name: "Nguyễn Hoàng Đức", dob: "1998-01-11", transferValue: 500000, position: "Tiền vệ" }
-];
+import axios from "axios";
 
-export function getAll() {
-    return [...playerList];
-}
+const URL_PLAYERS = "http://localhost:8080/players";
+const URL_POSITIONS = "http://localhost:8080/positions";
 
-export function addNew(player) {
-    // Giả lập tự tăng ID nếu không nhập
-    if(!player.id) {
-        player.id = Math.max(...playerList.map(p => p.id)) + 1;
+export const getAll = async () => {
+    try {
+        const response = await axios.get(`${URL_PLAYERS}?_sort=id&_order=desc`); // Sắp xếp giảm dần theo ID
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách cầu thủ:", error);
+        return [];
     }
-    playerList.push(player);
-}
+};
 
-export function findById(id) {
-    return playerList.find(p => p.id === parseInt(id));
-}
-
-export function updatePlayer(player) {
-    let index = playerList.findIndex(p => p.id === player.id);
-    if (index !== -1) {
-        playerList[index] = player;
+export const getAllPositions = async () => {
+    try {
+        const response = await axios.get(URL_POSITIONS);
+        return response.data;
+    } catch (error) {
+        return [];
     }
 }
 
-export function deleteById(id) {
-    let index = playerList.findIndex(p => p.id === id);
-    if (index !== -1) {
-        playerList.splice(index, 1);
+export const addNew = async (player) => {
+    try {
+        await axios.post(URL_PLAYERS, player);
+    } catch (error) {
+        console.error("Lỗi khi thêm mới:", error);
     }
-}
+};
 
-export function searchByNameOrCode(keyword) {
-    if (!keyword) return [...playerList];
-    return playerList.filter(p =>
-        p.name.toLowerCase().includes(keyword.toLowerCase()) ||
-        p.code.includes(keyword)
-    );
-}
+export const findById = async (id) => {
+    try {
+        const response = await axios.get(`${URL_PLAYERS}/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Lỗi khi tìm cầu thủ:", error);
+        return null;
+    }
+};
+
+export const updatePlayer = async (player) => {
+    try {
+        await axios.put(`${URL_PLAYERS}/${player.id}`, player);
+    } catch (error) {
+        console.error("Lỗi khi cập nhật:", error);
+    }
+};
+
+export const deleteById = async (id) => {
+    try {
+        await axios.delete(`${URL_PLAYERS}/${id}`);
+    } catch (error) {
+        console.error("Lỗi khi xóa:", error);
+    }
+};
+
+export const searchByNameOrCode = async (keyword) => {
+    try {
+        const response = await axios.get(`${URL_PLAYERS}?q=${keyword}`);
+        return response.data;
+    } catch (error) {
+        return [];
+    }
+};

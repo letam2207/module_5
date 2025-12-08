@@ -1,9 +1,7 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAll, searchByNameOrCode } from "../service/PlayerService.jsx";
 import DeleteComponent from "./DeleteComponent.jsx";
-import { toast } from "react-toastify";
 
 const ListComponent = () => {
     const [playerList, setPlayerList] = useState([]);
@@ -11,14 +9,23 @@ const ListComponent = () => {
     const [showModal, setShowModal] = useState(false);
     const searchRef = useRef();
 
+    const fetchData = async () => {
+        const data = await getAll();
+        setPlayerList(data);
+    };
+
     useEffect(() => {
-        setPlayerList(getAll());
+        fetchData();
     }, []);
 
-    const handleSearch = () => {
+    const handleSearch = async () => {
         const keyword = searchRef.current.value;
-        const result = searchByNameOrCode(keyword);
-        setPlayerList(result);
+        if (keyword.trim() === "") {
+            await fetchData();
+        } else {
+            const result = await searchByNameOrCode(keyword);
+            setPlayerList(result);
+        }
     };
 
     const handleShowModal = (player) => {
@@ -26,11 +33,11 @@ const ListComponent = () => {
         setShowModal(true);
     };
 
-
-    const closeModal = (isDeleted = false) => {
+    const closeModal = async (isDeleted = false) => {
         setShowModal(false);
         if (isDeleted) {
-            setPlayerList(getAll());
+            // Nếu đã xóa thành công thì load lại danh sách
+            await fetchData();
         }
     };
 
@@ -69,7 +76,7 @@ const ListComponent = () => {
                             <td>{player.name}</td>
                             <td>{player.dob}</td>
                             <td>{player.transferValue}</td>
-                            <td>{player.position}</td>
+                            <td>{player.position?.name}</td>
                             <td>
                                 <Link to={`/players/edit/${player.id}`} className="btn btn-sm btn-warning me-2">
                                     Edit

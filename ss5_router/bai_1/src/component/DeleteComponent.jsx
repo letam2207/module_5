@@ -1,7 +1,6 @@
 import React from 'react';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-
 import { deleteById } from "../service/PlayerService.jsx";
 import { toast } from 'react-toastify';
 
@@ -11,8 +10,8 @@ const DeleteComponent = ({ closeModal, deletePlayer, showModal }) => {
         closeModal(false);
     };
 
-    const handleDelete = () => {
-        deleteById(deletePlayer.id);
+    const handleDelete = async () => {
+        await deleteById(deletePlayer.id);
         toast.success(`Đã xóa cầu thủ ${deletePlayer.name} thành công!`);
         closeModal(true);
     };

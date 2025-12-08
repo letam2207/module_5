@@ -1,31 +1,43 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { addNew, findById, updatePlayer } from '../service/PlayerService';
+import { addNew, findById, getAllPositions, updatePlayer } from '../service/PlayerService';
 import { toast } from 'react-toastify';
 
 const PlayerFormComponent = () => {
     const navigate = useNavigate();
     const { id } = useParams();
+    const [positions, setPositions] = useState([]); // State chứa danh sách vị trí
 
     const [initialValues, setInitialValues] = useState({
         code: "",
         name: "",
         dob: "",
         transferValue: "",
-        position: ""
+        position: "" // Formik sẽ lưu chuỗi JSON của object position
     });
 
+    // Load danh sách vị trí và dữ liệu cầu thủ (nếu là edit)
     useEffect(() => {
-        if (id) {
-            // Nếu có ID, đây là chức năng Sửa
-            const player = findById(id);
-            if (player) {
-                setInitialValues(player);
+        const loadData = async () => {
+            // 1. Lấy danh sách vị trí
+            const positionList = await getAllPositions();
+            setPositions(positionList);
+
+            // 2. Nếu có id (Edit) -> Lấy thông tin cầu thủ
+            if (id) {
+                const player = await findById(id);
+                if (player) {
+                    // Cần chuyển object position thành chuỗi JSON để gán vào select value
+                    setInitialValues({
+                        ...player,
+                        position: JSON.stringify(player.position)
+                    });
+                }
             }
-        }
+        };
+        loadData();
     }, [id]);
 
     const validationSchema = Yup.object({
@@ -40,12 +52,18 @@ const PlayerFormComponent = () => {
         position: Yup.string().required("Vui lòng chọn vị trí")
     });
 
-    const handleSubmit = (values) => {
+    const handleSubmit = async (values) => {
+        // values.position đang là chuỗi JSON, cần parse về object
+        const formValues = {
+            ...values,
+            position: JSON.parse(values.position)
+        };
+
         if (id) {
-            updatePlayer(values);
+            await updatePlayer(formValues);
             toast.success("Cập nhật thành công!");
         } else {
-            addNew(values);
+            await addNew(formValues);
             toast.success("Thêm mới thành công!");
         }
         navigate("/players");
@@ -87,12 +105,14 @@ const PlayerFormComponent = () => {
 
                     <div className="mb-3">
                         <label className="form-label">Vị Trí</label>
+                        {/* Render danh sách vị trí lấy từ API */}
                         <Field as="select" name="position" className="form-control">
                             <option value="">-- Chọn vị trí --</option>
-                            <option value="Thủ môn">Thủ môn</option>
-                            <option value="Hậu vệ">Hậu vệ</option>
-                            <option value="Tiền vệ">Tiền vệ</option>
-                            <option value="Tiền đạo">Tiền đạo</option>
+                            {positions.map((pos) => (
+                                <option key={pos.id} value={JSON.stringify(pos)}>
+                                    {pos.name}
+                                </option>
+                            ))}
                         </Field>
                         <ErrorMessage name="position" component="div" className="text-danger" />
                     </div>
