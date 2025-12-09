@@ -8,6 +8,7 @@ import FooterComponent from './component/FooterComponent.jsx';
 import HomeComponent from './component/HomeComponent.jsx';
 import ListComponent from './component/ListComponent';
 import PlayerFormComponent from './component/PlayerFormComponent.jsx';
+import LoginComponent from './component/LoginComponent.jsx';
 
 function App() {
     return (
@@ -19,6 +20,8 @@ function App() {
                     <Route path="/players" element={<ListComponent />} />
                     <Route path="/players/create" element={<PlayerFormComponent />} />
                     <Route path="/players/edit/:id" element={<PlayerFormComponent />} />
+
+                    <Route path="/login" element={<LoginComponent />} />
                 </Routes>
             </div>
             <FooterComponent />

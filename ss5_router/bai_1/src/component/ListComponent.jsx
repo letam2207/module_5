@@ -2,12 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAll, searchByNameOrCode } from "../service/PlayerService.jsx";
 import DeleteComponent from "./DeleteComponent.jsx";
+import { useNavigate } from "react-router-dom";
+import {toast} from "react-toastify";
 
 const ListComponent = () => {
     const [playerList, setPlayerList] = useState([]);
     const [deletePlayer, setDeletePlayer] = useState({ id: 0, name: "" });
     const [showModal, setShowModal] = useState(false);
     const searchRef = useRef();
+    const navigate = useNavigate();
+
+
 
     const fetchData = async () => {
         const data = await getAll();
@@ -27,6 +32,17 @@ const ListComponent = () => {
             setPlayerList(result);
         }
     };
+    useEffect(() => {
+        const user = localStorage.getItem("user");
+        if (!user) {
+            toast.warning("Bạn cần đăng nhập để xem danh sách!");
+            navigate("/login");
+            return;
+        }
+
+
+        fetchData();
+    }, []);
 
     const handleShowModal = (player) => {
         setDeletePlayer(player);
@@ -36,7 +52,6 @@ const ListComponent = () => {
     const closeModal = async (isDeleted = false) => {
         setShowModal(false);
         if (isDeleted) {
-            // Nếu đã xóa thành công thì load lại danh sách
             await fetchData();
         }
     };

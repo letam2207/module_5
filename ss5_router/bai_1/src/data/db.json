@@ -51,5 +51,21 @@
       },
       "id": "eKoU3yD"
     }
+  ],
+  "accounts": [
+    {
+      "id": "1",
+      "username": "admin",
+      "password": "123",
+      "role": "admin",
+      "name": "Admin Vip"
+    },
+    {
+      "id": "2",
+      "username": "user",
+      "password": "123",
+      "role": "user",
+      "name": "Người dùng thường"
+    }
   ]
 }
